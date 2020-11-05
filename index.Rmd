@@ -10,9 +10,13 @@ output:
 <br>
 
 This is my PM566 Final Project website. I will showcase a few interactive visuals here.
+
+(Your output should look something like this)
+
 <br>
 
 ```{r setup, message=FALSE, echo=FALSE, warning=FALSE}
+
 library(data.table)
 library(tidyverse)
 library(dplyr)
@@ -20,7 +24,7 @@ library(plotly)
 library(DT)
 library(knitr)
 
-# INITALIZE CODE CHUNK OPTIONS
+# Initialize code chunk options
 opts_chunk$set(
   warning = FALSE,
   message = FALSE,
@@ -43,16 +47,25 @@ opts_chunk$set(
   font-size: 10px;
 }
 ```
+
 <br>
 
-##  Step 1: Source processing code
+## First step
 
-```{r load-data, echo=FALSE}
+First I will source any necessary code, e.g. `process_covid_data.R`:
+
+```{r load-data}
 source("process_COVID_data.R")
 ```
+
 <br>
 
-##  Step 2: Add code for visuals
+## Second step
+
+Then I will add some code to create the **plotly** figures
+
+Note: You need to name each code chunk, like this one: `plot1`
+
 ```{r plot1, class.source="code-r-small"}
 
 p1_scatter <- cv_states_today %>% 
@@ -81,7 +94,9 @@ p2_scatter <- cv_states_today_scatter %>%
          hovermode = "compare")
 ```
 
-## Step 3: Display figures in tabs{.tabset}
+<br>
+
+## Third step {.tabset}
 
 Create tabs to display each figure
 
@@ -105,19 +120,3 @@ Done!
 
 <br>
 <br>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
