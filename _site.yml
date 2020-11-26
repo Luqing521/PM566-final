@@ -1,0 +1,16 @@
+name: "Final Project"
+navbar:
+  title: "Final Project"
+  left: 
+    - text: "Home"
+      href: index.html
+    - text: "Raw Data Website"
+      href: https://data.ca.gov/dataset/calenviroscreen-3-0-results/resource/89b3f4e9-0bf8-4690-8c6f-715a717f3fae
+  right:
+    - text: "Github Repository"
+      href: https://github.com/Luqing521/PM566-final
+    - text: "Full PDF download"
+      href: https://github.com/Luqing521/PM566-final/raw/main/index.pdf
+output: 
+  html_document:
+    theme: cosmo
