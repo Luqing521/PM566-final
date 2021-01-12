@@ -1,11 +1,13 @@
 ---
 title: "Association of air pollution and cardiovascular disease rate in california counties"
-author: "Luqing Ren"
+author: "__Luqing Ren__"
 always_allow_html: TRUE
 output:
   html_document:
       toc: TRUE
       toc_float: TRUE
+editor_options: 
+  chunk_output_type: inline
 ---
 
 
@@ -21,6 +23,7 @@ library(plotly)
 library(DT)
 library(knitr)
 library(sjPlot)
+library(ggpubr)
 ```
 
 ```{r, include=FALSE}
@@ -80,11 +83,17 @@ The main purpose of this project is to evaluate the association between pollutio
 ## __Methods__
 
 ### __Data source__ 
-The data set was downloaded from (https://data.ca.gov/dataset/calenviroscreen-3-0-results) through an API. Once downloaded, the desired information was extracted and formed into a data table. This is a data set including environmental, health, and socioeconomic information of all communities in California State. The key independent variables that were examined in this study were __PM2.5__, __ozone__, __traffic density__, __cardiovascular disease rate__ and __community category__. 
+The data set was downloaded from (https://data.ca.gov/dataset/calenviroscreen-3-0-results) through API. Once downloaded, the desired information was extracted and formed into a data table. This is a data set including environmental, health, and socioeconomic information of all communities in California State. The key independent variables that were examined in this study were __PM2.5__, __ozone__, __traffic density__, __cardiovascular disease rate__ and __community category__. 
   
+### __Examine variables__
+1) __PM2.5__ PM2.5 exposure in this data set was an annual mean concentration(ug/m3). After assessing the linearity of PM2.5 and CVD rate, the association was roughly linear. 
+2) __Ozone__ Ozone exposure, which is the mean of summer month (May-October) of the daily maximum 8 hours concentration (ppm). The relationship between ozone exposure and CVD rate was linear.
+3) __Traffic density__ Traffic exposure(vehicles-km/hr/km) is represented as the number of vehicles (adjusted by road segment lengths in kilometers) per hour per kilometer of roadways.Traffic variable was highly skewed. In order to easily interpret, the traffic density was cut into four levels, and the likelihood test result suggested that keep traffic density variable categorical was better. 
+4) __The events of cardio_disease__ Cardiovascular disease rate is a age-adjusted rate of emergency department(ED) visits for AMI per 10,000 residents. The events of cardio-disease were calculated through multiplying the rate of ED visit per 10,000 residents by the population in that community. Two missing data from population was excluded. 
+5) __Community__ The communities were divided into two categories: disadvantaged and non-disadvantaged. California Environmental Protection Agency (CalEPA) identify the communities which are more vulnerable to the effects of pollution than others as disadvantaged communities.
 
 ### __Statistical analysis__
-   An modified Poisson regression model was used to estimate the association of pollutants and cardiovascular disease rate in all communities of California State. Analyses were performed by adjusting for community category confounder. Further model fit assessment was tested by Person chi-square test. The overdispersion of the  model was also tested to determine if the variance was larger than what would be expected under a Poisson distribution.Negative binomial regression model was used to address overdispersion. P-values< 0.05 were considered statistically significant.
+   An modified Poisson regression model was used to estimate the association of pollutants and cardiovascular disease rate in all communities of California State. Analyses were performed by adjusting for community category confounding factor. Further model fit assessment was tested by Person chi-square test. The overdispersion of the  model was also tested to determine if the variance was larger than what would be expected under a Poisson distribution. Negative binomial regression model was used to address overdispersion. P-values< 0.05 were considered statistically significant.
    
 ```{r,include = FALSE} 
 # load the data set by API
@@ -121,7 +130,7 @@ data1 <-
   data1 %>% 
   mutate(community = as.integer(community_cat=="Yes"),
          cardio_count= round((cardio*pop_unit)/10000,digit=0))
-# creat data2 only has 58 observations
+# create data2 only has 58 observations
 data2<-as.data.table(data1)[, .SD[1], by="county"]
 ```
 
@@ -133,17 +142,17 @@ data2<-as.data.table(data1)[, .SD[1], by="county"]
 ```{r, message=FALSE, include=FALSE}
 p1_scatter <- ggplot(data2, aes(x=PM2.5_mean, y=cardio)) + 
   geom_point()+ 
-  geom_smooth(method = "lm")+
-  labs(title = "Pollutant with CVD rate", x="PM2.5",y ="Cardiovascular rate")
+  geom_smooth(method=lm)+
+  labs(title = "Pollutant with CVD rate(per 10,000 residents)", x="PM2.5(ug/m3)",y ="Cardiovascular rate")
 
 p2_scatter <- ggplot(data2, aes(x=ozone_mean, y=cardio)) + 
   geom_point()+ 
-  geom_smooth(method = "lm")+
-  labs(x="ozone")
+  geom_smooth(method=lm)+
+  labs(x="ozone(ppm)")
 
 p3_scatter<- ggplot(data2, aes(x=score_mean, y=cardio)) + 
   geom_point()+ 
-  geom_smooth(method = "lm")+
+  geom_smooth(method=lm)+
   labs(x="pollution score")
 ```
 
@@ -203,7 +212,7 @@ g5<- new_data%>%
 map<-ggarrange(g5, g6,
           labels = c("A", "B"),
           ncol = 2, nrow = 2)
-annotate_figure(map, top = text_grob("Figure2. pollution exposure and CVD rate by county "))  
+ # annotate_figure(map, top = text_grob("Figure2. pollution exposure and CVD rate by county "))  
 ```
 
   __Figure 2__: State map depict the pollution score and CVD rate data of each county in California.
@@ -213,37 +222,59 @@ Counties with high pollution score is consistent with higher CVD rate. For examp
 <br>
 
 ### __Pollution burden and community category__
-```{r, include=FALSE}
+```{r, echo=FALSE, message=FALSE}
 library(knitr)
-data1<-
-data1 %>% 
-mutate(score_mean=as.numeric(format(round(data1$score_mean, 3), nsmall = 3)),
-       cardio_mean=as.numeric(format(round(data1$cardio_mean, 3), nsmall = 3)))
 table1 <-
 data1 %>% 
   summarise(county,score_mean,community_cat) %>% 
   arrange(desc(score_mean))
-table1<-head(as.data.table(table1)[,.SD[1],by="county"], 10)
+
+
+# calculate the proportion of disadvantaged communities for each county
+table2<-
+  data1 %>% 
+  group_by(county) %>% 
+  summarise(score_mean=mean(score_mean),community_prop = mean(community)) %>% 
+  arrange(desc(score_mean))
+
+table3<-head(as.data.table(table2)[,.SD[1],by="county"], 10)
+```
+
+```{r,echo=FALSE, message=FALSE}
+kable(table3, align = "lcr",
+      col.names = c("County","Pollution Score","Disadvantaged Community"))
+
+```
+ 
+```{r,echo=FALSE, message=FALSE}
+# bar chart sort by community_prop value
+table3$county <- factor(table3$county,levels = unique(table3$county)[order(table3$score_mean,decreasing = TRUE)])
+
+fig<- plot_ly(table3,x = ~county,y = ~community_prop, type='bar',text =~paste(paste(" pollution score: ", score_mean, sep="")))
+fig <- fig %>% 
+layout(title =("Dis-communities proportion in county"),
+                       xaxis =list(title=("County")) ,
+                       yaxis = list(title=("Proportion")))
 
 ```
 
-```{r, echo=FALSE, message=FALSE}
-kable(table1, align = "lcr",
-      col.names = c("County","Score","Community category"))
+```{r, echo=FALSE, warning=FALSE}
+fig
 ```
-__Table 1__: Top 10 counties with high pollution burden and their community category. 
+
+ __Figure 3__:  __Figure 3__ lists top 10 counties with the higher pollution score. Fresno county has the highest pollution burden and is approximately 60% disadvantaged communities in this county. A high pollution burden is not exactly positive related with high proportion of disadvantaged communities of the county. 
 
 <br>
 
 ```{r,include=FALSE, message=FALSE, warning=FALSE}
 p<- 
-  plot_ly(data1, x = ~as.factor(community_cat), y = ~cardio,alpha = 0.1) %>% 
+  plot_ly(data1, x = ~as.factor(community_cat), y = ~cardio) %>% 
   add_boxplot(color = ~community_cat) %>%
-  layout(title ="cardiovascular rate by community category ",
+  layout(title ="CVD rate by community category ",
          legend_title = "dis",
-         yaxis = list(title = "cardiovascular rate"),
-         xaxis = list(title = "disadvantage community"))
-
+         yaxis = list(title = "cardiovascular rate(per 10,000 residents)"),
+         xaxis = list(title = "disadvantaged community")) 
+  
 ```
 
 ```{r, echo=FALSE, warning=FALSE}
@@ -251,39 +282,114 @@ p
 ```
 __Figure 3__ : CVD rate by community category.  
 
-   Among the top 10 cities with high pollution burden, 90% of them are indisadvantage communities. CalEPA classifies communities as "disadvantage" due to the environmental conditions and vulnerability of people living in those communities. __Figure3__ and __table1__ both indicate that living in an disadvantageous community may increase the risk of CVD.
+   Among the top 10 cities with high pollution burden, 90% of them are disadvantaged communities. CalEPA classifies communities as "disadvantaged" due to the environmental conditions and vulnerability of people living in those communities. __Figure3__ and __table1__ both indicate that living in an disadvantaged community increase the risk of CVD rate.
 
 <br>
 
 ###  __CVD rate with pollution burden by community category__
 ```{r,include=FALSE, warning=FALSE}
-
 p <- data1 %>% 
   plot_ly(x = ~score_mean, y = ~cardio_mean,
           type = 'scatter', mode = 'markers', color = ~community_cat,
           size = ~cardio_mean, sizes = c(5, 70), 
           marker = list(sizemode='diameter', opacity=0.5),
           text = ~paste( paste(county, sep=""), paste(" pollution score: ", score_mean, sep="") , paste("cardiovascular rate : ", cardio_mean, sep=""), sep = "<br>")) %>%
-  layout(title = "Cardiovascular rate vs. pollutant burden by community category",legend_title = "disadvantage community",
-                yaxis = list(title = "Cardiovascular rate"), 
+  layout(title = "CVD rate vs. pollutant burden by community category",legend_title = "disadvantaged community",
+                yaxis = list(title = "Cardiovascular rate(per 10,000 residents)"), 
          xaxis = list(title = "pollution burden"),hovermode = "compare")
 
 ```
 
 ```{r, echo=FALSE, warning=FALSE}
-ggplotly(p)
+p
 ```
 __Figure 4__ : Cardiovascular rate vs. pollutant burden by community category.  
 
-__Figure 4__ shows the association between CVD rate and pollution burden by community category. The average pollution burden in disadvantage communities is obviously higher than non-disadvantage communities. However, the relationship between CVD rate and pollution burden is not as obvious as in __Figure 1__.
+__Figure 4__ shows the association between CVD rate and pollution burden by community category. The average pollution burden in disadvantaged  communities is obviously higher than non-disadvantage communities. However, the relationship between CVD rate and pollution burden is not as obvious as in __Figure 1__.
    
 <br> 
 
 
+```{r simple relationship table2, include=FALSE}
+# make traffic variable to categorical predictor
+data1 <-
+  data1 %>%
+  mutate(
+    traffic.q4 = cut(traffic,
+                     breaks = quantile(traffic, probs = 0:4/4,na.rm = T),
+                     include.lowest = T),
+    traffic.q4_f = as.factor(traffic.q4),
+    ozone_ctr= ozone/mean(ozone)
+  )
+# remove o counts in population
+data1 <- data1[!data1$pop_unit==0]
+```
+
+### __Traffic density level VS PM2.5 and Ozone__
+```{r interaction PM2.5 and traffic,include=FALSE, warning=FALSE}
+t3<-
+data1 %>% 
+  select(traffic.q4,PM2.5_mean,ozone_mean) %>%
+  group_by(traffic.q4) %>% 
+  summarise(PM2.5 = mean(PM2.5_mean),ozone=mean(ozone_mean))
+t3<-t3[-5,]
+```
+
+```{r, echo=FALSE}
+kable(t3,align = "lcr",
+      col.names = c("Traffic density level (vehicles-km/hr/km)","PM2.5 (ug/m3)","Ozone (ppm)"))
+```
+__Table 3__: Traffic density vs PM2.5 and Ozone
+
+The lowest traffic density level was 22.4-442 (vehicles-km/hr/km).The mean PM2.5 and ozone value associated with the lowest traffic density were 9.98(ug/m3) and 0.049(ppm), respectively. The highest traffic density level was associated the highest PM2.5 value 10.62(ug/m3). Thus, increased PM2.5 was associated with high traffic density level.
+
+<br>
+
+### __Adjusted association between CVD rate and all variables__
+```{r final negative model, include=FALSE, warning=FALSE}
+#preliminary model:
+model1<- glm(cardio_count~PM2.5*traffic.q4+ozone_ctr, family=poisson, data=data1)
+
+#adjust for community :
+model_adj<-glm(cardio_count~PM2.5*traffic.q4+ozone_ctr++community, family=poisson, data=data1)
+summary(model_adj)
+
+# GOF test : p-value is small, not fit well
+pois_pearson_gof(model_adj)
+pois_dev_gof(model_adj)
+
+# Checking for Overdispersion
+AER::dispersiontest(model_adj)
+
+# negative binomial model
+model_neg<- MASS::glm.nb(cardio_count~PM2.5*traffic.q4+ozone_ctr+community, link=log, data=data1)
+
+pois_dev_gof(model_neg)
+
+# table for negative model
+
+q2<-tab_model(model1,model_neg,
+              dv.labels = c("Unadjusted Model", "Negative binomial  Model"),
+             string.ci = "Conf. Int (95%)",
+             string.p = "P-Value",show.reflvl = TRUE,
+             prefix.labels = "varname",file = 'fgf.doc'
+  )
+
+```
+
+```{r, echo=FALSE}
+q2
+```
+__Table 5__: Adjusted association between the pollution and CVD rate.
+   
+After checking overdispersion, there was an 1.14 (P<0.001) overdispersion term in the Poisson model. A negative binomial regression model was performed to address overdispersion. In the final negative binomial model, PM2.5 was not statistically associated with CVD rate(p=0.463) compared to unadjusted model(p<0.001), and the exposure had the similar CVD rate as non-exposure(95% CI 0.99,1.00;p=0.463). Every one-unit ozone exposure is associated with 2.21 times the CVD rate(95% CI 2.08,2.35;p<0.001), while 2.27 times before adjusting for community. The highest traffic density exposure was associated with 1.84 times CVD rate (95% CI 1.53,2.21;p<0.001) which increased 25% compared to unadjustment model (95% CI 1.24,1.75;p<0.001). Moreover, there is a significant interaction between PM2.5 and traffic density,and increased PM2.5 was associated with high traffic density level( __table3__ ).
+   
+<br>
+
 ## __Conclusion__
 
-Pollutants such PM2.5, Ozone and traffic were statistically significantly assocaited with CVD rate and living in an disadvantageous community may increases risk of CVD rate. The baseline of CVD rate after adjustment of community category increased 13%. The CVD rate in highest traffic density level increased 25% compared to unadjustment. Although the CVD rate associated with PM2.5, and ozone exposure did not change much after adjustment, the people with ozone exposure still had 2.21 times the rate of CVD than the baseline. PM2.5 had a significant interaction with traffic density level. Thus, improvements in air quality would be helpfull to reduce over all CVD prevalance acrross california. In additon, efforts to identify the pollution source that accounting for a community's vulnerability would benefitial to those disadvantaged communities which suffered most from CVD occurence. 
-  
+Pollutants such PM2.5, Ozone and traffic were statistically significantly associated with CVD rate and living in an disadvantaged community increases risk of CVD rate. The baseline of CVD rate after adjustment of community category increased 13%. The CVD rate in highest traffic density level increased 25% compared to unadjusted model. Although the CVD rate associated with PM2.5, and ozone exposure did not change much after adjustment, the people with ozone exposure still had 2.21 times the rate of CVD than the baseline. PM2.5 had a significant interaction with traffic density level. Thus, improvements in air quality would be helpful to reduce overall CVD prevalence across California. In addition, efforts to identify the pollution source that accounting for a community's vulnerability would beneficial to those disadvantaged communities which suffered most from CVD occurrence. 
+
 <br>
 <br>
 
