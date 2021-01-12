@@ -93,7 +93,7 @@ The data set was downloaded from (https://data.ca.gov/dataset/calenviroscreen-3-
 5) __Community__ The communities were divided into two categories: disadvantaged and non-disadvantaged. California Environmental Protection Agency (CalEPA) identify the communities which are more vulnerable to the effects of pollution than others as disadvantaged communities.
 
 ### __Statistical analysis__
-   An modified Poisson regression model was used to estimate the association of pollutants and cardiovascular disease rate in all communities of California State. Analyses were performed by adjusting for community category confounding factor. Further model fit assessment was tested by Person chi-square test. The overdispersion of the  model was also tested to determine if the variance was larger than what would be expected under a Poisson distribution. Negative binomial regression model was used to address overdispersion. P-values< 0.05 were considered statistically significant.
+   An modified Poisson regression model was used to estimate the association of pollutants and cardiovascular disease rate in all communities of California State. Analyses were performed by adjusting for community category confounding factor. Further model fit assessment was tested by Person chi-square test. The overdispersion of the  model was also tested to determine if the variance was larger than what would be expected under a Poisson distribution. Negative binomial regression model was used to address overdispersion issue. P-values< 0.05 were considered statistically significant.
    
 ```{r,include = FALSE} 
 # load the data set by API
