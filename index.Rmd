@@ -212,7 +212,7 @@ g5<- new_data%>%
 map<-ggarrange(g5, g6,
           labels = c("A", "B"),
           ncol = 2, nrow = 2)
- # annotate_figure(map, top = text_grob("Figure2. pollution exposure and CVD rate by county "))  
+annotate_figure(map, top = text_grob ("Figure2. pollution exposure and CVD rate by county "))  
 ```
 
   __Figure 2__: State map depict the pollution score and CVD rate data of each county in California.
