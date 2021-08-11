@@ -215,7 +215,7 @@ map<-ggarrange(g5, g6,
 annotate_figure(map, top = text_grob ("Figure2. pollution exposure and CVD rate by county "))  
 ```
 
-  __Figure 2__: State map depict the pollution score and CVD rate data of each county in California.
+__Figure 2__: State map depict the pollution score and CVD rate data of each county in California.
 
 Counties with high pollution score is consistent with higher CVD rate. For example, Madera, Fresno, Los Angeles, San Joaquin, San Bernadino and Riverside counties have higher pollution score as well as a high CVD rate( __Figure 2__ ). However, there are some inconsistency. For instance, the northern counties of state shows lower pollution burden but have relatively higher CVD rate. This suggests that other life characteristics and factors may contribute to their high CVD rate.
 
