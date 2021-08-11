@@ -6,6 +6,12 @@ navbar:
       href: index.html
     - text: "Raw Data Website"
       href: https://data.ca.gov/dataset/calenviroscreen-3-0-results/resource/89b3f4e9-0bf8-4690-8c6f-715a717f3fae
+    - text: "Practicum report1"
+      href: Progress-Report--1-Luqing Ren.html
+    - text: "Practicum report2"
+      href: Progress-Report-2-LuqingRen.html
+    - text: "Practicum final report"
+      href: PM606 Final-report-Luqing_Ren.html
   right:
     - text: "Github Repository"
       href: https://github.com/Luqing521/PM566-final
